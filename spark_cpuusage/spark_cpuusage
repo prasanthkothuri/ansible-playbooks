@@ -1,0 +1,20 @@
+- name: Spark Application CPU Usage
+  hosts: hadalytic
+  tasks:
+
+     - name: Getting PIDs from pattern
+       shell: PS_OUTPUT="$(ps aux)"; echo "$PS_OUTPUT" |grep {{ pattern }} | grep -v bash | grep -v container-executor | awk '{ print $2 }'| awk -vORS=, '{ print $1 }' | sed 's/,$/\n/'
+       register: pid
+     - name: Printing PIDs
+       debug: msg="pid is {{pid.stdout}}"
+     - name: Run the script
+       script: /afs/cern.ch/user/p/pkothuri/public/pcpu.sh {{pid.stdout}} {{ pattern }}
+     - name: Register tempfiles
+       shell: ls /tmp/pcpu.{{inventory_hostname}}.{{pattern}}.*.out
+       register: tmp_files
+     - name: Fetch output
+       fetch: src={{ item }} dest=/tmp fail_on_missing=no flat=yes
+       with_items: "{{ tmp_files.stdout_lines }}"
+     - name: post process the files locally
+       local_action: command /afs/cern.ch/user/p/pkothuri/public/plocal.sh {{ pattern }}
+       run_once: true
