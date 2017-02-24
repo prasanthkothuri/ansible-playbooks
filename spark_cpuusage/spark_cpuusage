@@ -8,7 +8,7 @@
      - name: Printing PIDs
        debug: msg="pid is {{pid.stdout}}"
      - name: Run the script
-       script: /afs/cern.ch/user/p/pkothuri/public/pcpu.sh {{pid.stdout}} {{ pattern }}
+       script: /afs/cern.ch/user/p/pkothuri/ansible-playbooks/spark_cpuusage/pcpu.sh {{pid.stdout}} {{ pattern }}
      - name: Register tempfiles
        shell: ls /tmp/pcpu.{{inventory_hostname}}.{{pattern}}.*.out
        register: tmp_files
@@ -16,5 +16,5 @@
        fetch: src={{ item }} dest=/tmp fail_on_missing=no flat=yes
        with_items: "{{ tmp_files.stdout_lines }}"
      - name: post process the files locally
-       local_action: command /afs/cern.ch/user/p/pkothuri/public/plocal.sh {{ pattern }}
+       local_action: command /afs/cern.ch/user/p/pkothuri/ansible-playbooks/spark_cpuusage/plocal.sh {{ pattern }}
        run_once: true
